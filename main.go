@@ -19,6 +19,7 @@ var (
 	isClosed bool
 
 	certfile, keyfile string
+	dataEnd           string
 )
 
 func main() {
@@ -38,6 +39,9 @@ func main() {
 	// Util parameter
 	flag.BoolVar(&smtpd.Debug, "debug", false, "Enable debug log from smtpd.")
 	flag.IntVar(&srv.MaxSize, "maxsize", 0, "Maximum bytes to accept for mail data. (0 means no limit)")
+
+	// Program customization
+	flag.StringVar(&dataEnd, "dataend", "", "String to write at the end of the log after mail data.")
 
 	flag.Parse()
 
@@ -82,7 +86,7 @@ func main() {
 }
 
 func logIncoming(remoteAddr net.Addr, from string, to []string, data []byte) (err error) {
-	log.Printf("received from: %v from: %v to: %v \n%s\n", remoteAddr, from, to, data)
+	log.Printf("received from: %v from: %v to: %v \n%s%s", remoteAddr, from, to, data, dataEnd)
 	return
 }
 
