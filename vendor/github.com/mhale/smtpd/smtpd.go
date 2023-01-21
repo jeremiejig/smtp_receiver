@@ -300,7 +300,6 @@ func (srv *Server) Shutdown(ctx context.Context) error {
 			timer.Reset(100 * time.Millisecond)
 		case <-ctx.Done():
 			return ctx.Err()
-		default:
 		}
 	}
 
