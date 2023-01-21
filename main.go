@@ -23,13 +23,21 @@ var (
 
 func main() {
 	var hostname, _ = os.Hostname()
+	// Main parameter
 	flag.StringVar(&srv.Addr, "listen", ":8025", "Address to bind to.")
 	flag.StringVar(&srv.Appname, "appname", "smtpd", "Name of the service.")
 	flag.StringVar(&srv.Hostname, "servername", hostname, "hostname for the service to use.")
 	flag.DurationVar(&srv.Timeout, "timeout", 5*time.Minute, "Maximum wait time for all network operation")
+
+	// TLS config
 	flag.BoolVar(&srv.TLSListener, "tlsonly", false, "Start the server in smtps only work if tls material was provided.")
+	flag.BoolVar(&srv.TLSRequired, "tlsrequired", false, "Enforce STARTTLS.")
 	flag.StringVar(&certfile, "cert", "", "Certificate to use for TLS server.")
 	flag.StringVar(&keyfile, "key", "", "Private key to use for TLS server.")
+
+	// Util parameter
+	flag.BoolVar(&smtpd.Debug, "debug", false, "Enable debug log from smtpd.")
+	flag.IntVar(&srv.MaxSize, "maxsize", 0, "Maximum bytes to accept for mail data. (0 means no limit)")
 
 	flag.Parse()
 
