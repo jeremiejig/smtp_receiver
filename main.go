@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"flag"
 	"log"
 	"net"
 	"os"
@@ -16,9 +17,31 @@ var (
 	srv      smtpd.Server
 	ln       net.Listener
 	isClosed bool
+
+	certfile, keyfile string
 )
 
 func main() {
+	var hostname, _ = os.Hostname()
+	flag.StringVar(&srv.Addr, "listen", ":8025", "Address to bind to.")
+	flag.StringVar(&srv.Appname, "appname", "smtpd", "Name of the service.")
+	flag.StringVar(&srv.Hostname, "servername", hostname, "hostname for the service to use.")
+	flag.DurationVar(&srv.Timeout, "timeout", 5*time.Minute, "Maximum wait time for all network operation")
+	flag.BoolVar(&srv.TLSListener, "tlsonly", false, "Start the server in smtps only work if tls material was provided.")
+	flag.StringVar(&certfile, "cert", "", "Certificate to use for TLS server.")
+	flag.StringVar(&keyfile, "key", "", "Private key to use for TLS server.")
+
+	flag.Parse()
+
+	var err error
+	if certfile != "" && keyfile != "" {
+		err = srv.ConfigureTLS(certfile, keyfile)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else if certfile != "" || keyfile != "" {
+		log.Fatal("There is a missing -cert or -key")
+	}
 
 	go func() {
 		var c = make(chan os.Signal, 1)
@@ -38,9 +61,7 @@ func main() {
 
 	srv.Handler = logIncoming
 
-	srv.Addr = "localhost:8025"
-
-	err := ListenAndServe()
+	err = ListenAndServe()
 	if isClosed {
 		err = srv.Shutdown(context.TODO())
 		if err != nil {
